@@ -1,4 +1,5 @@
 import { SectionHeader } from '../components/SectionHeader';
+import { PixelAvatar } from '../components/PixelAvatar';
 import { useDashboardRuntime } from '../hooks/useDashboardRuntime';
 
 const statusLabelMap = {
@@ -9,7 +10,7 @@ const statusLabelMap = {
 };
 
 export function AgentsPage() {
-  const { agents, runtime } = useDashboardRuntime();
+  const { agents, ayangPlan, runtime } = useDashboardRuntime();
   const activeCount = agents.filter((agent) => agent.status === 'active').length;
   const totalSessions = runtime?.runtime?.sessions?.length ?? agents.reduce((sum, agent) => sum + Number(agent.sessions || 0), 0);
 
@@ -44,12 +45,13 @@ export function AgentsPage() {
         {agents.map((agent) => (
           <article key={agent.id} className={`panel agent-card accent-${agent.accent}`}>
             <div>
-              <div className="agent-head">
+              <div className="agent-avatar-row">
+                <PixelAvatar agentId={agent.id} size="md" />
                 <div>
                   <div className="eyebrow">{agent.role}</div>
                   <h3>{agent.name}</h3>
+                  <span className={`pill ${agent.status}`}>{statusLabelMap[agent.status] || agent.status}</span>
                 </div>
-                <span className={`pill ${agent.status}`}>{statusLabelMap[agent.status] || agent.status}</span>
               </div>
 
               <p className="muted">{agent.description}</p>
@@ -70,6 +72,48 @@ export function AgentsPage() {
           </article>
         ))}
       </div>
+
+      {ayangPlan && ayangPlan.tasks && ayangPlan.tasks.length > 0 ? (
+        <section>
+          <SectionHeader
+            eyebrow="阿羊"
+            title="阿羊今日计划"
+            description="聚焦今天的安排、目标与交付。"
+          />
+          <div className="plan-panel panel">
+            <div className="plan-head">
+              <div>
+                <div className="eyebrow">{ayangPlan.title}</div>
+                <h3>{ayangPlan.focus}</h3>
+              </div>
+              <span className={`pill ${ayangPlan.generatedAt ? 'active' : 'queued'}`}>{ayangPlan.generatedAt ? '已更新' : '待同步'}</span>
+            </div>
+            <p className="muted">{ayangPlan.summary}</p>
+            <div className="plan-task-list">
+              {ayangPlan.tasks.slice(0, 3).map((task, index) => (
+                <div key={`${task.title}-${index}`} className="plan-task-item">
+                  <div className="plan-task-title">{task.title}</div>
+                  <div className="plan-task-field">
+                    <span className="eyebrow">目标</span>
+                    <span>{task.goal}</span>
+                  </div>
+                  <div className="plan-task-field">
+                    <span className="eyebrow">资料</span>
+                    <span>{task.resource}</span>
+                  </div>
+                  <div className="plan-task-field">
+                    <span className="eyebrow">交付</span>
+                    <span>{task.deliverable}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {Array.isArray(ayangPlan.notes) && ayangPlan.notes.length > 0 ? (
+              <div className="plan-notes muted compact">备注：{ayangPlan.notes[0]}</div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

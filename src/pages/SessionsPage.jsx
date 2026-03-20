@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { SectionHeader } from '../components/SectionHeader';
 import { useDashboardRuntime } from '../hooks/useDashboardRuntime';
 
@@ -7,9 +8,35 @@ const kindLabelMap = {
   subagent: '子任务',
 };
 
+const filterOptions = [
+  { key: 'all', label: '全部' },
+  { key: 'running', label: '进行中' },
+  { key: 'completed', label: '已完成' },
+  { key: 'queued', label: '等待中' },
+];
+
 export function SessionsPage() {
   const { sessions, runtime, source, refreshing } = useDashboardRuntime();
   const activeCount = runtime?.status?.sessions?.active ?? sessions.length;
+
+  const [search, setSearch] = useState('');
+  const [stateFilter, setStateFilter] = useState('all');
+
+  const filtered = useMemo(() => {
+    return sessions.filter((s) => {
+      if (stateFilter !== 'all' && s.state !== stateFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          (s.title || '').toLowerCase().includes(q) ||
+          (s.summary || '').toLowerCase().includes(q) ||
+          (s.id || '').toLowerCase().includes(q) ||
+          (s.agent || '').toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [sessions, search, stateFilter]);
 
   return (
     <div className="page-stack">
@@ -19,6 +46,27 @@ export function SessionsPage() {
         description="上下文、模型与活跃状态"
         action={<span className={`pill ${source.mode === 'backend' ? 'active' : source.mode === 'snapshot' ? 'warn' : 'queued'}`}>{refreshing ? '后台刷新中' : source.label}</span>}
       />
+
+      <div className="sessions-filter-bar panel subtle-panel">
+        <input
+          className="sessions-search-input"
+          type="text"
+          placeholder="搜索会话…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <div className="filter-pills">
+          {filterOptions.map((opt) => (
+            <button
+              key={opt.key}
+              className={`filter-pill${stateFilter === opt.key ? ' filter-pill-active' : ''}`}
+              onClick={() => setStateFilter(opt.key)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="sessions-toolbar panel subtle-panel">
         <div>
@@ -36,7 +84,7 @@ export function SessionsPage() {
       </div>
 
       <div className="session-list">
-        {sessions.map((session) => (
+        {filtered.map((session) => (
           <article key={session.id} className="panel session-card session-card-runtime elevated-panel">
             <div className="session-top">
               <div>
@@ -63,6 +111,11 @@ export function SessionsPage() {
             ) : null}
           </article>
         ))}
+        {filtered.length === 0 ? (
+          <div className="panel" style={{ padding: '24px', textAlign: 'center' }}>
+            <p className="muted">没有匹配的会话</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

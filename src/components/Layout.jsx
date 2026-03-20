@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
 
 const links = [
-  { to: '/', label: '总览', hint: '关键状态 · 今日重点' },
-  { to: '/agents', label: '角色', hint: '分工 · 活跃度' },
-  { to: '/sessions', label: '会话', hint: '上下文 · 处理进度' },
-  { to: '/system', label: '系统', hint: '健康 · 技能 · 授权' },
+  { to: '/', label: '总览', hint: '关键状态 · 今日重点', icon: '⌘' },
+  { to: '/agents', label: '角色', hint: '分工 · 活跃度', icon: '◎' },
+  { to: '/sessions', label: '会话', hint: '上下文 · 处理进度', icon: '⟡' },
+  { to: '/system', label: '系统', hint: '健康 · 授权', icon: '⚙' },
 ];
 
 export function Layout({ children }) {
@@ -36,7 +36,7 @@ export function Layout({ children }) {
                 className={({ isActive }) => `nav-link ${isActive ? 'nav-link-active' : ''}`}
               >
                 <div className="nav-main">
-                  <span className="nav-index">0{index + 1}</span>
+                  <span className="nav-index">{link.icon}</span>
                   <div>
                     <div className="nav-label">{link.label}</div>
                     <div className="nav-hint">{link.hint}</div>
@@ -48,13 +48,6 @@ export function Layout({ children }) {
           </nav>
         </div>
 
-        <div className="sidebar-footer panel subtle-panel">
-          <div className="eyebrow">当前状态</div>
-          <div className="sidebar-footer-title">轻量设计</div>
-          <p className="muted compact">
-            聚焦高频信息，快速确认状态。
-          </p>
-        </div>
       </aside>
 
       <main className="content">{children}</main>

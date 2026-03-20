@@ -1,7 +1,7 @@
 import http from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -463,6 +463,145 @@ const server = http.createServer(async (req, res) => {
         runtimeReady: Boolean(runtimeState.data),
         lastSuccessAt: runtimeState.lastSuccessAt,
       });
+      return;
+    }
+
+    // ── GET /api/metrics — system metrics ──
+    if (req.method === 'GET' && url.pathname === '/api/metrics') {
+      const uptime = process.uptime();
+      const days = Math.floor(uptime / 86400);
+      const hours = Math.floor((uptime % 86400) / 3600);
+      const minutes = Math.floor((uptime % 3600) / 60);
+      const uptimeStr = days > 0 ? `${days}d ${hours}h ${minutes}m` : hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+
+      const mem = process.memoryUsage();
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const usedPercent = (((totalMem - freeMem) / totalMem) * 100).toFixed(1);
+
+      const cpus = os.cpus();
+      const cpuModel = cpus.length > 0 ? cpus[0].model : 'unknown';
+      const loadAvg = os.loadavg();
+
+      json(res, 200, {
+        ok: true,
+        data: {
+          cpu: { model: cpuModel, cores: cpus.length, loadAvg },
+          memory: {
+            total: totalMem,
+            free: freeMem,
+            usedPercent: `${usedPercent}%`,
+            processRss: mem.rss,
+            processHeap: mem.heapUsed,
+          },
+          uptime: uptimeStr,
+          uptimeSeconds: uptime,
+          node: process.version,
+          platform: `${os.platform()} ${os.arch()}`,
+          hostname: os.hostname(),
+        },
+      });
+      return;
+    }
+
+    // ── GET /api/logs — recent log lines ──
+    if (req.method === 'GET' && url.pathname === '/api/logs') {
+      const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 500);
+      const logPath = path.join(os.homedir(), '.openclaw', 'logs', 'dashboard.log');
+      let lines = [];
+      if (existsSync(logPath)) {
+        try {
+          const content = readFileSync(logPath, 'utf8');
+          lines = content.split('\n').filter(Boolean).slice(-limit);
+        } catch { /* ignore read errors */ }
+      }
+      json(res, 200, { ok: true, data: { lines, count: lines.length, path: logPath } });
+      return;
+    }
+
+    // ── POST /api/agents/:id/task — task dispatch stub (must be before GET /api/agents/:id) ──
+    {
+      const taskMatch = req.method === 'POST' && url.pathname.match(/^\/api\/agents\/([^/]+)\/task$/);
+      if (taskMatch) {
+        if (!requireLocal(req, res)) return;
+        const id = taskMatch[1];
+        const body = await readBody(req);
+        json(res, 200, {
+          ok: true,
+          data: {
+            agentId: id,
+            task: body,
+            status: 'queued',
+            queuedAt: new Date().toISOString(),
+          },
+          message: `任务已排队给 ${id}。`,
+        });
+        return;
+      }
+    }
+
+    // ── GET /api/agents/:id — single agent ──
+    {
+      const agentMatch = req.method === 'GET' && url.pathname.match(/^\/api\/agents\/([^/]+)$/);
+      if (agentMatch) {
+        const id = agentMatch[1];
+        const agents = runtimeState.data?.runtime?.agents || runtimeState.data?.agents || [];
+        const agent = Array.isArray(agents)
+          ? agents.find((a) => a.id === id)
+          : agents[id] || null;
+        if (!agent) {
+          json(res, 404, { ok: false, error: `Agent "${id}" not found` });
+          return;
+        }
+        json(res, 200, { ok: true, data: agent });
+        return;
+      }
+    }
+
+    // ── GET /api/sessions/:id — single session ──
+    {
+      const sessMatch = req.method === 'GET' && url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
+      if (sessMatch) {
+        const id = sessMatch[1];
+        const sessions = runtimeState.data?.runtime?.sessions || runtimeState.data?.sessions || [];
+        const session = Array.isArray(sessions)
+          ? sessions.find((s) => s.id === id || s.key === id)
+          : null;
+        if (!session) {
+          json(res, 404, { ok: false, error: `Session "${id}" not found` });
+          return;
+        }
+        json(res, 200, { ok: true, data: session });
+        return;
+      }
+    }
+
+    // ── GET /api/config — read dashboard config ──
+    if (req.method === 'GET' && url.pathname === '/api/config') {
+      const configPath = path.join(os.homedir(), '.openclaw', 'dashboard-config.json');
+      const config = readJsonMaybe(configPath) || {};
+      json(res, 200, { ok: true, data: config, path: configPath });
+      return;
+    }
+
+    // ── POST /api/config — merge update config ──
+    if (req.method === 'POST' && url.pathname === '/api/config') {
+      if (!requireLocal(req, res)) return;
+      const configPath = path.join(os.homedir(), '.openclaw', 'dashboard-config.json');
+      const existing = readJsonMaybe(configPath) || {};
+      const body = await readBody(req);
+      const merged = { ...existing, ...body, updatedAt: new Date().toISOString() };
+      try {
+        const dir = path.dirname(configPath);
+        if (!existsSync(dir)) {
+          const { mkdirSync } = await import('node:fs');
+          mkdirSync(dir, { recursive: true });
+        }
+        writeFileSync(configPath, JSON.stringify(merged, null, 2), 'utf8');
+        json(res, 200, { ok: true, data: merged, message: '配置已更新。' });
+      } catch (error) {
+        json(res, 500, { ok: false, error: error.message || '写入配置失败' });
+      }
       return;
     }
 

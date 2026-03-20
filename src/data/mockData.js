@@ -157,25 +157,6 @@ export const sessions = [
   },
 ];
 
-export const skillGroups = [
-  {
-    category: '系统运维',
-    items: ['github', 'gh-issues', 'healthcheck', 'browser-automation'],
-  },
-  {
-    category: '研究检索',
-    items: ['summarize', 'academic-deep-research', 'arxiv-scholar-search', 'tavily'],
-  },
-  {
-    category: '记忆与改进',
-    items: ['smart-agent-memory', 'feedback-loop', 'self-improvement'],
-  },
-  {
-    category: '文档与生成',
-    items: ['skill-creator', 'Word / DOCX', 'pdf', 'nano-pdf'],
-  },
-];
-
 export const healthChecks = [
   {
     label: '网关服务',
