@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>ai.openclaw.dashboard</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/local/bin/node</string>
+      <string>/Users/apple/.openclaw/workspace/openclaw-dashboard/scripts/auth-bridge.mjs</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/apple/.openclaw/workspace/openclaw-dashboard</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>PATH</key>
+      <string>/Users/apple/.npm-global/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+      <key>OPENCLAW_BIN</key>
+      <string>/Users/apple/.npm-global/bin/openclaw</string>
+      <key>OCAUTH_BRIDGE_HOST</key>
+      <string>0.0.0.0</string>
+      <key>OCAUTH_BRIDGE_PORT</key>
+      <string>4318</string>
+      <key>DASHBOARD_RUNTIME_REFRESH_MS</key>
+      <string>30000</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/apple/.openclaw/logs/dashboard-backend.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/apple/.openclaw/logs/dashboard-backend.err.log</string>
+  </dict>
+</plist>

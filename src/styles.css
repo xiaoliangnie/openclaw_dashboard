@@ -1,0 +1,1063 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #f3f7ff;
+  background:
+    radial-gradient(circle at top left, rgba(106, 92, 255, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(15, 196, 175, 0.18), transparent 24%),
+    linear-gradient(180deg, #09111f 0%, #0c1527 55%, #0a1020 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+  gap: 24px;
+  padding: 24px;
+}
+
+.content,
+.page-stack,
+.compact-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 16, 30, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 24px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.subtle-panel {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.elevated-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.elevated-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(124, 114, 255, 0.08), transparent 36%, rgba(54, 216, 192, 0.05));
+  pointer-events: none;
+}
+
+.sidebar {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  position: sticky;
+  top: 24px;
+  height: calc(100vh - 48px);
+  background: linear-gradient(180deg, rgba(11, 17, 33, 0.92), rgba(10, 15, 28, 0.8));
+}
+
+.sidebar-stack,
+.sidebar-top {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(233, 239, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.sidebar h1 {
+  font-size: 2.15rem;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+.sidebar-copy {
+  max-width: 26ch;
+}
+
+.sidebar-overview,
+.sidebar-footer {
+  padding: 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-overview-title,
+.sidebar-footer-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 6px 0 8px;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 18px;
+  color: rgba(243, 247, 255, 0.82);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: 180ms ease;
+}
+
+.nav-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.nav-index {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(214, 224, 255, 0.72);
+  font-size: 0.82rem;
+}
+
+.nav-link:hover,
+.nav-link-active {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, rgba(117, 130, 255, 0.18), rgba(90, 103, 240, 0.12));
+  border-color: rgba(130, 146, 255, 0.3);
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(42, 59, 138, 0.24);
+}
+
+.nav-label {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.nav-main > div {
+  min-width: 0;
+}
+
+.nav-hint {
+  font-size: 0.83rem;
+  color: rgba(210, 219, 248, 0.62);
+  overflow-wrap: anywhere;
+}
+
+.nav-dot,
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #54d2ff;
+  box-shadow: 0 0 12px rgba(84, 210, 255, 0.6);
+}
+
+.hero-panel,
+.activity-list,
+.session-card,
+.agent-card,
+.stat-card,
+.plan-panel,
+.system-grid > .panel,
+.auth-panel,
+.auth-card,
+.auth-action-card,
+.agents-overview-strip,
+.sessions-toolbar {
+  padding: 22px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.9fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+.hero-copy-block {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.hero h2 {
+  font-size: clamp(1.85rem, 4vw, 3.2rem);
+  line-height: 1.06;
+  max-width: 16ch;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
+}
+
+.hero-copy {
+  max-width: 62ch;
+  font-size: 1rem;
+}
+
+.hero-note {
+  overflow-wrap: anywhere;
+}
+
+.hero-inline-metrics,
+.auth-grid,
+.auth-actions-grid,
+.overview-lower-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.hero-inline-card,
+.auth-card,
+.auth-action-card,
+.agents-overview-strip > div,
+.sessions-toolbar > div {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 16px;
+}
+
+.hero-inline-card strong,
+.agents-overview-strip strong,
+.sessions-toolbar strong {
+  display: block;
+  font-size: 1.5rem;
+  margin: 8px 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.hero-metrics {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.hero-summary {
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+}
+
+.summary-list,
+.activity-list,
+.session-list,
+.skill-groups,
+.health-list,
+.plan-task-list,
+.auth-kv-list,
+.auth-label-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-head,
+.summary-row,
+.system-health-head,
+.auth-panel-head,
+.auth-card-head,
+.stat-top,
+.agent-head,
+.session-top,
+.health-item,
+.activity-item,
+.agent-metrics,
+.plan-head,
+.auth-form-row,
+.auth-kv-item,
+.session-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.summary-head {
+  margin-bottom: 8px;
+}
+
+.signal {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7c72ff, #35d8c0);
+  box-shadow: 0 10px 24px rgba(79, 117, 255, 0.35);
+}
+
+.section-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.section-header > div {
+  min-width: 0;
+}
+
+.section-header h2 {
+  font-size: 1.45rem;
+  margin-top: 4px;
+  margin-bottom: 6px;
+}
+
+.eyebrow,
+.metric-label,
+.stat-label,
+.block-title,
+.health-label,
+.session-runtime-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(180, 195, 255, 0.72);
+}
+
+.muted {
+  color: rgba(229, 236, 255, 0.68);
+}
+
+.compact {
+  font-size: 0.92rem;
+}
+
+.stats-grid,
+.agents-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.stat-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 12px 0 8px;
+}
+
+.pill,
+.chip,
+.primary-button,
+.ghost-button,
+.label-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eef4ff;
+  white-space: normal;
+  text-align: center;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, rgba(112, 98, 255, 0.95), rgba(67, 213, 196, 0.72));
+  border: none;
+  box-shadow: 0 10px 24px rgba(87, 107, 255, 0.28);
+}
+
+.ghost-button,
+.label-button {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.label-button {
+  width: 100%;
+  justify-content: space-between;
+  border-radius: 16px;
+}
+
+.label-button-active {
+  background: rgba(82, 222, 170, 0.14);
+  border-color: rgba(82, 222, 170, 0.22);
+}
+
+.primary-button:disabled,
+.ghost-button:disabled,
+.label-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.pill.active,
+.pill.running,
+.status-dot.ok {
+  background: rgba(32, 196, 138, 0.14);
+}
+
+.pill.idle,
+.pill.completed {
+  background: rgba(92, 132, 255, 0.12);
+}
+
+.pill.queued,
+.status-dot.warn {
+  background: rgba(255, 190, 85, 0.18);
+}
+
+.activity-item {
+  align-items: start;
+  justify-content: start;
+  padding: 12px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.activity-item:last-child,
+.skill-group:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  min-width: 52px;
+  color: rgba(179, 196, 255, 0.88);
+  font-weight: 600;
+}
+
+.activity-title,
+.session-card h3,
+.skill-group h3,
+.agent-card h3,
+.auth-panel h3,
+.plan-head h3 {
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+  overflow-wrap: anywhere;
+}
+
+.plan-head {
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.plan-task-item,
+.session-runtime-item {
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.035);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan-task-title {
+  font-weight: 600;
+}
+
+.system-grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 18px;
+}
+
+.skill-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.health-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.agent-card {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.agent-metrics {
+  justify-content: start;
+  gap: 28px;
+  margin-top: 20px;
+}
+
+.agent-metrics strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.1rem;
+}
+
+.agents-overview-strip,
+.sessions-toolbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.session-card-runtime {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.session-title-row {
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.session-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.session-meta-line span:not(:last-child)::after {
+  content: '·';
+  margin-left: 10px;
+  opacity: 0.5;
+}
+
+.session-summary {
+  margin-top: 4px;
+  margin-bottom: 14px;
+  color: rgba(239, 244, 255, 0.86);
+}
+
+.session-runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.auth-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.auth-kv-item {
+  align-items: start;
+}
+
+.auth-kv-item strong {
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.auth-form-row {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.auth-input {
+  flex: 1;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(9, 14, 26, 0.86);
+  color: #eef4ff;
+  padding: 12px 14px;
+}
+
+.auth-path {
+  margin-top: 12px;
+  word-break: break-all;
+}
+
+.auth-feedback {
+  padding: 14px 16px;
+  border-radius: 18px;
+  font-size: 0.92rem;
+}
+
+.auth-feedback.success {
+  background: rgba(27, 163, 118, 0.14);
+  border: 1px solid rgba(48, 199, 146, 0.2);
+}
+
+.auth-feedback.error {
+  background: rgba(255, 176, 82, 0.12);
+  border: 1px solid rgba(255, 176, 82, 0.2);
+}
+
+.tone-emerald,
+.accent-emerald {
+  box-shadow: inset 0 1px 0 rgba(60, 226, 173, 0.15), 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.tone-blue,
+.accent-blue {
+  box-shadow: inset 0 1px 0 rgba(84, 176, 255, 0.18), 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.tone-violet,
+.accent-violet {
+  box-shadow: inset 0 1px 0 rgba(156, 119, 255, 0.2), 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+.tone-amber {
+  box-shadow: inset 0 1px 0 rgba(255, 183, 64, 0.2), 0 18px 48px rgba(0, 0, 0, 0.28);
+}
+
+/* ── Relocated base rules (were scattered between media queries) ── */
+
+.sidebar,
+.hero,
+.hero-summary,
+.hero-inline-card,
+.plan-panel,
+.agent-card,
+.session-card,
+.auth-panel,
+.auth-card,
+.auth-action-card,
+.stat-card,
+.system-grid > .panel,
+.agents-overview-strip > div,
+.sessions-toolbar > div,
+.activity-item > div:last-child,
+.session-top > div,
+.agent-head > div,
+.plan-head > div,
+.system-health-head > div:first-child {
+  min-width: 0;
+}
+
+.session-top,
+.agent-head,
+.plan-head,
+.auth-panel-head,
+.auth-card-head,
+.system-health-head,
+.stat-top,
+.health-item {
+  flex-wrap: wrap;
+}
+
+.session-top {
+  align-items: flex-start;
+}
+
+.session-title-row h3,
+.session-runtime-item strong,
+.auth-kv-item strong,
+.plan-task-item,
+.agent-foot,
+.skill-group h3 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.ghost-button,
+.primary-button {
+  min-height: 42px;
+}
+
+/* ── New component styles ── */
+
+.plan-task-field {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.plan-task-field .eyebrow {
+  flex-shrink: 0;
+  min-width: 3em;
+}
+
+.session-context-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Hover & interaction ── */
+
+.stat-card,
+.agent-card,
+.session-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.stat-card:hover,
+.agent-card:hover,
+.session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.38);
+}
+
+.primary-button {
+  transition: filter 180ms ease, transform 180ms ease;
+}
+
+.primary-button:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+}
+
+.ghost-button,
+.label-button {
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.ghost-button:hover:not(:disabled),
+.label-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* ── Focus-visible ── */
+
+:focus-visible {
+  outline: 2px solid rgba(124, 114, 255, 0.7);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+.nav-link:focus-visible,
+.auth-input:focus-visible {
+  outline: 2px solid rgba(124, 114, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* ── Entry animation ── */
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-stack > * {
+  animation: fadeSlideUp 400ms ease both;
+}
+
+.page-stack > *:nth-child(2) { animation-delay: 60ms; }
+.page-stack > *:nth-child(3) { animation-delay: 120ms; }
+.page-stack > *:nth-child(4) { animation-delay: 180ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}
+
+/* ── Responsive: 1180px – sidebar narrows, grids stack ── */
+
+@media (max-width: 1180px) {
+  .shell {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .hero,
+  .stats-grid,
+  .agents-grid,
+  .overview-lower-grid,
+  .hero-inline-metrics,
+  .auth-grid,
+  .auth-actions-grid,
+  .system-grid,
+  .agents-overview-strip,
+  .sessions-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Responsive: 980px – sidebar becomes horizontal compact nav ── */
+
+@media (max-width: 980px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    top: auto;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 16px 20px;
+    gap: 12px;
+  }
+
+  .sidebar-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .sidebar-top {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .sidebar-copy,
+  .sidebar-overview,
+  .sidebar-footer {
+    display: none;
+  }
+
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .nav-link {
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  .nav-hint {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .system-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Responsive: 720px – compact layout ── */
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .sidebar,
+  .hero-panel,
+  .activity-list,
+  .session-card,
+  .agent-card,
+  .stat-card,
+  .plan-panel,
+  .system-grid > .panel,
+  .auth-panel,
+  .auth-card,
+  .auth-action-card,
+  .agents-overview-strip,
+  .sessions-toolbar {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .hero-inline-metrics,
+  .stats-grid,
+  .agents-grid,
+  .overview-lower-grid,
+  .auth-grid,
+  .auth-actions-grid,
+  .agents-overview-strip,
+  .sessions-toolbar,
+  .system-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-header,
+  .session-top,
+  .agent-head,
+  .activity-item,
+  .auth-panel-head,
+  .auth-card-head,
+  .auth-form-row,
+  .auth-kv-item,
+  .summary-head,
+  .summary-row,
+  .system-health-head,
+  .health-item,
+  .plan-head,
+  .stat-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero h2 {
+    max-width: none;
+  }
+
+  .auth-head-actions {
+    width: 100%;
+  }
+
+  .auth-head-actions > * {
+    width: 100%;
+  }
+
+  .auth-input,
+  .primary-button,
+  .ghost-button {
+    width: 100%;
+  }
+
+  .auth-kv-item strong,
+  .health-meta,
+  .session-top > .pill,
+  .agent-head > .pill,
+  .plan-head > .pill {
+    max-width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .activity-time {
+    min-width: 0;
+  }
+}
+
+/* ── Responsive: 480px – phone ── */
+
+@media (max-width: 480px) {
+  .shell {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .sidebar,
+  .hero-panel,
+  .activity-list,
+  .session-card,
+  .agent-card,
+  .stat-card,
+  .plan-panel,
+  .system-grid > .panel,
+  .auth-panel,
+  .auth-card,
+  .auth-action-card,
+  .agents-overview-strip,
+  .sessions-toolbar {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .sidebar h1 {
+    font-size: 1.72rem;
+  }
+
+  .hero h2 {
+    font-size: 1.7rem;
+    line-height: 1.1;
+  }
+
+  .hero-inline-card strong,
+  .agents-overview-strip strong,
+  .sessions-toolbar strong,
+  .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .nav-link {
+    align-items: flex-start;
+  }
+
+  .nav-dot {
+    margin-top: 10px;
+    flex-shrink: 0;
+  }
+}

@@ -1,0 +1,364 @@
+{
+  "generatedAt": "2026-03-20T04:45:51.030Z",
+  "source": "openclaw-cli",
+  "models": {
+    "defaultModel": "openai-codex/gpt-5.4",
+    "configuredModels": "openai-codex/gpt-5.4",
+    "auth": {
+      "ok": true,
+      "provider": "openai-codex",
+      "profile": "openai-codex:default",
+      "expiresIn": "10d",
+      "summary": "openai-codex · openai-codex:default · expires in 10d",
+      "providers": [
+        {
+          "provider": "openai-codex",
+          "profile": "openai-codex:default",
+          "status": "ok",
+          "expiresIn": "10d"
+        }
+      ]
+    }
+  },
+  "status": {
+    "gateway": {
+      "reachable": true,
+      "summary": "local · ws://127.0.0.1:18789 (local loopback) · reachable 21ms · auth token · apple-macdeMacBook-",
+      "service": "LaunchAgent installed · loaded · running (pid 98031)",
+      "healthStatus": "reachable",
+      "healthDetail": "6366ms"
+    },
+    "telegram": {
+      "status": "OK",
+      "detail": "token config×3 (8734…Ajlg · len 46) · accounts 3/3"
+    },
+    "sessions": {
+      "active": 8,
+      "summary": "8 active · default gpt-5.4 (200k ctx) · 3 stores",
+      "items": [
+        {
+          "id": "agent:main:telegram:direct:7262…",
+          "key": "agent:main:telegram:direct:7262…",
+          "kind": "direct",
+          "age": "9m ago",
+          "model": "gpt-5.4",
+          "tokens": "92k/272k (34%) · 🗄️ 100% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 二弟 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 9m ago · 92k/272k (34%) · 🗄️ 100% cached"
+        },
+        {
+          "id": "agent:ayang:telegram:direct:726…",
+          "key": "agent:ayang:telegram:direct:726…",
+          "kind": "direct",
+          "age": "27m ago",
+          "model": "gpt-5.4",
+          "tokens": "54k/272k (20%) · 🗄️ 99% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 阿羊 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 27m ago · 54k/272k (20%) · 🗄️ 99% cached"
+        },
+        {
+          "id": "agent:zhiyu:telegram:direct:726…",
+          "key": "agent:zhiyu:telegram:direct:726…",
+          "kind": "direct",
+          "age": "30m ago",
+          "model": "gpt-5.4",
+          "tokens": "43k/272k (16%) · 🗄️ 97% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 知雨 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 30m ago · 43k/272k (16%) · 🗄️ 97% cached"
+        },
+        {
+          "id": "agent:main:main",
+          "key": "agent:main:main",
+          "kind": "direct",
+          "age": "2h ago",
+          "model": "gpt-5.4",
+          "tokens": "unknown/272k (?%) · 🗄️ 100% cached",
+          "state": "idle",
+          "stateLabel": "近期无新动作",
+          "title": "主控制台 · 二弟",
+          "summary": "gpt-5.4 · 最近活跃 2h ago · unknown/272k (?%) · 🗄️ 100% cached"
+        },
+        {
+          "id": "agent:main:cron:6880fd03-3d8d-4…",
+          "key": "agent:main:cron:6880fd03-3d8d-4…",
+          "kind": "direct",
+          "age": "11h ago",
+          "model": "gpt-5.4",
+          "tokens": "unknown/272k (?%)",
+          "state": "queued",
+          "stateLabel": "已沉淀",
+          "title": "定时任务 · 二弟",
+          "summary": "gpt-5.4 · 最近活跃 11h ago · unknown/272k (?%)"
+        },
+        {
+          "id": "agent:main:cron:6880fd03-3d8d-4…",
+          "key": "agent:main:cron:6880fd03-3d8d-4…",
+          "kind": "direct",
+          "age": "11h ago",
+          "model": "gpt-5.4",
+          "tokens": "unknown/272k (?%)",
+          "state": "queued",
+          "stateLabel": "已沉淀",
+          "title": "定时任务 · 二弟",
+          "summary": "gpt-5.4 · 最近活跃 11h ago · unknown/272k (?%)"
+        },
+        {
+          "id": "agent:main:subagent:19975321-58…",
+          "key": "agent:main:subagent:19975321-58…",
+          "kind": "direct",
+          "age": "17h ago",
+          "model": "gpt-5.4",
+          "tokens": "30k/272k (11%) · 🗄️ 44% cached",
+          "state": "queued",
+          "stateLabel": "已沉淀",
+          "title": "子任务 · 二弟",
+          "summary": "gpt-5.4 · 最近活跃 17h ago · 30k/272k (11%) · 🗄️ 44% cached"
+        },
+        {
+          "id": "agent:main:telegram:slash:72620…",
+          "key": "agent:main:telegram:slash:72620…",
+          "kind": "direct",
+          "age": "6d ago",
+          "model": "gpt-5.4",
+          "tokens": "unknown/200k (?%)",
+          "state": "queued",
+          "stateLabel": "已沉淀",
+          "title": "Telegram · 二弟 · 命令",
+          "summary": "gpt-5.4 · 最近活跃 6d ago · unknown/200k (?%)"
+        }
+      ]
+    },
+    "update": {
+      "summary": "Update available (npm 2026.3.13). Run: openclaw update",
+      "detail": "available · pnpm · npm update 2026.3.13"
+    },
+    "security": {
+      "summary": "0 critical · 2 warn · 1 info",
+      "detail": "WARN Extension plugin tools may be reachable under permissive tool policy"
+    }
+  },
+  "runtime": {
+    "sessions": [
+      {
+        "id": "agent:main:telegram:direct:7262…",
+        "key": "agent:main:telegram:direct:7262…",
+        "kind": "direct",
+        "age": "9m ago",
+        "model": "gpt-5.4",
+        "tokens": "92k/272k (34%) · 🗄️ 100% cached",
+        "state": "active",
+        "stateLabel": "活跃中",
+        "title": "Telegram · 二弟 · 直聊",
+        "summary": "gpt-5.4 · 最近活跃 9m ago · 92k/272k (34%) · 🗄️ 100% cached"
+      },
+      {
+        "id": "agent:ayang:telegram:direct:726…",
+        "key": "agent:ayang:telegram:direct:726…",
+        "kind": "direct",
+        "age": "27m ago",
+        "model": "gpt-5.4",
+        "tokens": "54k/272k (20%) · 🗄️ 99% cached",
+        "state": "active",
+        "stateLabel": "活跃中",
+        "title": "Telegram · 阿羊 · 直聊",
+        "summary": "gpt-5.4 · 最近活跃 27m ago · 54k/272k (20%) · 🗄️ 99% cached"
+      },
+      {
+        "id": "agent:zhiyu:telegram:direct:726…",
+        "key": "agent:zhiyu:telegram:direct:726…",
+        "kind": "direct",
+        "age": "30m ago",
+        "model": "gpt-5.4",
+        "tokens": "43k/272k (16%) · 🗄️ 97% cached",
+        "state": "active",
+        "stateLabel": "活跃中",
+        "title": "Telegram · 知雨 · 直聊",
+        "summary": "gpt-5.4 · 最近活跃 30m ago · 43k/272k (16%) · 🗄️ 97% cached"
+      },
+      {
+        "id": "agent:main:main",
+        "key": "agent:main:main",
+        "kind": "direct",
+        "age": "2h ago",
+        "model": "gpt-5.4",
+        "tokens": "unknown/272k (?%) · 🗄️ 100% cached",
+        "state": "idle",
+        "stateLabel": "近期无新动作",
+        "title": "主控制台 · 二弟",
+        "summary": "gpt-5.4 · 最近活跃 2h ago · unknown/272k (?%) · 🗄️ 100% cached"
+      },
+      {
+        "id": "agent:main:cron:6880fd03-3d8d-4…",
+        "key": "agent:main:cron:6880fd03-3d8d-4…",
+        "kind": "direct",
+        "age": "11h ago",
+        "model": "gpt-5.4",
+        "tokens": "unknown/272k (?%)",
+        "state": "queued",
+        "stateLabel": "已沉淀",
+        "title": "定时任务 · 二弟",
+        "summary": "gpt-5.4 · 最近活跃 11h ago · unknown/272k (?%)"
+      },
+      {
+        "id": "agent:main:cron:6880fd03-3d8d-4…",
+        "key": "agent:main:cron:6880fd03-3d8d-4…",
+        "kind": "direct",
+        "age": "11h ago",
+        "model": "gpt-5.4",
+        "tokens": "unknown/272k (?%)",
+        "state": "queued",
+        "stateLabel": "已沉淀",
+        "title": "定时任务 · 二弟",
+        "summary": "gpt-5.4 · 最近活跃 11h ago · unknown/272k (?%)"
+      },
+      {
+        "id": "agent:main:subagent:19975321-58…",
+        "key": "agent:main:subagent:19975321-58…",
+        "kind": "direct",
+        "age": "17h ago",
+        "model": "gpt-5.4",
+        "tokens": "30k/272k (11%) · 🗄️ 44% cached",
+        "state": "queued",
+        "stateLabel": "已沉淀",
+        "title": "子任务 · 二弟",
+        "summary": "gpt-5.4 · 最近活跃 17h ago · 30k/272k (11%) · 🗄️ 44% cached"
+      },
+      {
+        "id": "agent:main:telegram:slash:72620…",
+        "key": "agent:main:telegram:slash:72620…",
+        "kind": "direct",
+        "age": "6d ago",
+        "model": "gpt-5.4",
+        "tokens": "unknown/200k (?%)",
+        "state": "queued",
+        "stateLabel": "已沉淀",
+        "title": "Telegram · 二弟 · 命令",
+        "summary": "gpt-5.4 · 最近活跃 6d ago · unknown/200k (?%)"
+      }
+    ],
+    "agents": [
+      {
+        "id": "main",
+        "name": "二弟",
+        "role": "总控 / 编排",
+        "description": "负责主会话、任务路由、整合输出。",
+        "accent": "blue",
+        "status": "active",
+        "mood": "正在处理对话",
+        "sessions": 6,
+        "lastAction": "9m ago · Telegram · 二弟 · 直聊",
+        "latestSession": {
+          "id": "agent:main:telegram:direct:7262…",
+          "key": "agent:main:telegram:direct:7262…",
+          "kind": "direct",
+          "age": "9m ago",
+          "model": "gpt-5.4",
+          "tokens": "92k/272k (34%) · 🗄️ 100% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 二弟 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 9m ago · 92k/272k (34%) · 🗄️ 100% cached"
+        }
+      },
+      {
+        "id": "ayang",
+        "name": "阿羊",
+        "role": "技术前沿 / 工程探索",
+        "description": "偏新工具、AI 应用、系统玩法和方案探索。",
+        "accent": "violet",
+        "status": "active",
+        "mood": "正在处理对话",
+        "sessions": 1,
+        "lastAction": "27m ago · Telegram · 阿羊 · 直聊",
+        "latestSession": {
+          "id": "agent:ayang:telegram:direct:726…",
+          "key": "agent:ayang:telegram:direct:726…",
+          "kind": "direct",
+          "age": "27m ago",
+          "model": "gpt-5.4",
+          "tokens": "54k/272k (20%) · 🗄️ 99% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 阿羊 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 27m ago · 54k/272k (20%) · 🗄️ 99% cached"
+        }
+      },
+      {
+        "id": "zhiyu",
+        "name": "知雨",
+        "role": "研究 / 论文支持",
+        "description": "偏论文、文献、研究问题整理和方法路线。",
+        "accent": "emerald",
+        "status": "active",
+        "mood": "正在处理对话",
+        "sessions": 1,
+        "lastAction": "30m ago · Telegram · 知雨 · 直聊",
+        "latestSession": {
+          "id": "agent:zhiyu:telegram:direct:726…",
+          "key": "agent:zhiyu:telegram:direct:726…",
+          "kind": "direct",
+          "age": "30m ago",
+          "model": "gpt-5.4",
+          "tokens": "43k/272k (16%) · 🗄️ 97% cached",
+          "state": "active",
+          "stateLabel": "活跃中",
+          "title": "Telegram · 知雨 · 直聊",
+          "summary": "gpt-5.4 · 最近活跃 30m ago · 43k/272k (16%) · 🗄️ 97% cached"
+        }
+      }
+    ],
+    "ayangPlan": {
+      "generatedAt": "2026-03-20",
+      "owner": "阿羊",
+      "period": "daily",
+      "title": "阿羊晨间计划",
+      "focus": "重规划版起步：建立大模型应用岗学习总图，并补齐最小深度学习认知框架",
+      "summary": "今天重点：明确新版学习主线：核心概念 + 1 个主项目 + 面试表达；建立神经网络训练的最小认知框架，不追求细节推导；产出一份可复用的个人学习总图笔记",
+      "tasks": [
+        {
+          "title": "任务1：看最小基础资料，建立训练流程总图",
+          "goal": "输入、模型、输出、loss、参数更新分别是什么；训练为什么是反复迭代的；先建立直觉，不深挖公式",
+          "resource": "3Blue1Brown neural networks / backpropagation",
+          "deliverable": "一篇《我接下来到 6 月底的学习主线是什么，为什么这样安排》短笔记（300~500 字）",
+          "status": "active"
+        },
+        {
+          "title": "任务2：整理新版学习主线",
+          "goal": "为什么现在要收缩战线；为什么主线要锁定在大模型应用岗；为什么优先保住 1 个主项目",
+          "resource": "吴恩达深度学习入门前置基础内容",
+          "deliverable": "一篇《神经网络训练流程总览》短笔记（300~500 字）",
+          "status": "active"
+        },
+        {
+          "title": "任务3：完成今日书面输出",
+          "goal": "写出自己的理解，而不是抄资料；形成后续可复用的笔记底稿",
+          "resource": "3Blue1Brown neural networks / backpropagation；吴恩达深度学习入门前置基础内容",
+          "deliverable": "当前最困惑的 3 个问题",
+          "status": "active"
+        },
+        {
+          "title": "任务4：列出当前最困惑的 3 个问题",
+          "goal": "为明天纠偏做准备",
+          "resource": "3Blue1Brown neural networks / backpropagation；吴恩达深度学习入门前置基础内容",
+          "deliverable": "一篇《我接下来到 6 月底的学习主线是什么，为什么这样安排》短笔记（300~500 字）；一篇《神经网络训练流程总览》短笔记（300~500 字）；当前最困惑的 3 个问题",
+          "status": "active"
+        }
+      ],
+      "notes": [
+        "今日验收：能讲清：为什么旧计划作废，为什么现在要收缩战线；能讲清：输入 -> 模型 -> 输出 -> loss -> 参数更新 这条链；今天至少完成 2 篇短笔记",
+        "同步规则：每日先写入本文件，再发送给大哥；新计划覆盖前一天计划。"
+      ],
+      "links": []
+    }
+  },
+  "raw": {
+    "modelsStatus": "Config        : ~/.openclaw/openclaw.json\nAgent dir     : ~/.openclaw/agents/main/agent\nDefault       : openai-codex/gpt-5.4\nFallbacks (0) : -\nImage model   : -\nImage fallbacks (0): -\nAliases (0)   : -\nConfigured models (1): openai-codex/gpt-5.4\n\nAuth overview\nAuth store    : ~/.openclaw/agents/main/agent/auth-profiles.json\nShell env     : off\nProviders w/ OAuth/tokens (1): openai-codex (1)\n- openai-codex effective=profiles:~/.openclaw/agents/main/agent/auth-profiles.json | profiles=1 (oauth=1, token=0, api_key=0) | openai-codex:default=OAuth\n\nOAuth/token status\n[plugins] [lcm] Ignoring sessions matching 4 pattern(s): agent:*:cron:**, agent:*:subagent:**, agent:ayang:**, agent:zhiyu:**\n[plugins] [lcm] Plugin loaded (enabled=true, db=/Users/apple/.openclaw/lcm.db, threshold=0.75)\n[plugins] [lcm] Compaction summarization model: openai-codex/gpt-5.4 (default)\n- openai-codex\n  - openai-codex:default ok expires in 10d\n",
+    "statusDeep": "[plugins] [lcm] Ignoring sessions matching 4 pattern(s): agent:*:cron:**, agent:*:subagent:**, agent:ayang:**, agent:zhiyu:**\n[plugins] [lcm] Plugin loaded (enabled=true, db=/Users/apple/.openclaw/lcm.db, threshold=0.75)\n[plugins] [lcm] Compaction summarization model: openai-codex/gpt-5.4 (default)\nOpenClaw status\n\nOverview\n┌─────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────┐\n│ Item            │ Value                                                                                              │\n├─────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Dashboard       │ http://127.0.0.1:18789/                                                                            │\n│ OS              │ macos 13.7.8 (x64) · node 24.14.0                                                                  │\n│ Tailscale       │ off                                                                                                │\n│ Channel         │ stable (default)                                                                                   │\n│ Update          │ available · pnpm · npm update 2026.3.13                                                            │\n│ Gateway         │ local · ws://127.0.0.1:18789 (local loopback) · reachable 21ms · auth token · apple-macdeMacBook-  │\n│                 │ Pro.local (10.96.210.89) app 2026.3.12 macos 13.7.8                                                │\n│ Gateway service │ LaunchAgent installed · loaded · running (pid 98031)                                               │\n│ Node service    │ LaunchAgent not installed                                                                          │\n│ Agents          │ 3 · 3 bootstrap files present · sessions 8 · default main active 9m ago                            │\n│ Memory          │ 0 files · 0 chunks · dirty · sources memory · plugin memory-core · vector unknown · fts ready ·    │\n│                 │ cache on (0)                                                                                       │\n│ Probes          │ enabled                                                                                            │\n│ Events          │ none                                                                                               │\n│ Heartbeat       │ 30m (main), disabled (ayang), disabled (zhiyu)                                                     │\n│ Last heartbeat  │ ok-token · 11m ago ago · unknown                                                                   │\n│ Sessions        │ 8 active · default gpt-5.4 (200k ctx) · 3 stores                                                   │\n└─────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────┘\n\nSecurity audit\nSummary: 0 critical · 2 warn · 1 info\n  WARN Extension plugin tools may be reachable under permissive tool policy\n    Enabled extension plugins: lossless-claw. Permissive tool policy contexts: - default\n    Fix: Use restrictive profiles (`minimal`/`coding`) or explicit tool allowlists that exclude plugin tools for agents handling untrusted input.\n  WARN Plugin installs include unpinned npm specs\n    Unpinned plugin install records: - lossless-claw (@martian-engineering/lossless-claw)\n    Fix: Pin install specs to exact versions (for example, `@scope/pkg@1.2.3`) for higher supply-chain stability.\nFull report: openclaw security audit\nDeep probe: openclaw security audit --deep\n\nChannels\n┌──────────┬─────────┬────────┬────────────────────────────────────────────────────────────────────────────────────────┐\n│ Channel  │ Enabled │ State  │ Detail                                                                                 │\n├──────────┼─────────┼────────┼────────────────────────────────────────────────────────────────────────────────────────┤\n│ Telegram │ ON      │ OK     │ token config×3 (8734…Ajlg · len 46) · accounts 3/3                                     │\n└──────────┴─────────┴────────┴────────────────────────────────────────────────────────────────────────────────────────┘\n\nSessions\n┌───────────────────────────────────────────────┬────────┬─────────┬──────────────┬────────────────────────────────────┐\n│ Key                                           │ Kind   │ Age     │ Model        │ Tokens                             │\n├───────────────────────────────────────────────┼────────┼─────────┼──────────────┼────────────────────────────────────┤\n│ agent:main:telegram:direct:7262…              │ direct │ 9m ago  │ gpt-5.4      │ 92k/272k (34%) · 🗄️ 100% cached    │\n│ agent:ayang:telegram:direct:726…              │ direct │ 27m ago │ gpt-5.4      │ 54k/272k (20%) · 🗄️ 99% cached     │\n│ agent:zhiyu:telegram:direct:726…              │ direct │ 30m ago │ gpt-5.4      │ 43k/272k (16%) · 🗄️ 97% cached     │\n│ agent:main:main                               │ direct │ 2h ago  │ gpt-5.4      │ unknown/272k (?%) · 🗄️ 100% cached │\n│ agent:main:cron:6880fd03-3d8d-4…              │ direct │ 11h ago │ gpt-5.4      │ unknown/272k (?%)                  │\n│ agent:main:cron:6880fd03-3d8d-4…              │ direct │ 11h ago │ gpt-5.4      │ unknown/272k (?%)                  │\n│ agent:main:subagent:19975321-58…              │ direct │ 17h ago │ gpt-5.4      │ 30k/272k (11%) · 🗄️ 44% cached     │\n│ agent:main:telegram:slash:72620…              │ direct │ 6d ago  │ gpt-5.4      │ unknown/200k (?%)                  │\n└───────────────────────────────────────────────┴────────┴─────────┴──────────────┴────────────────────────────────────┘\n\nHealth\n┌──────────┬───────────┬───────────────────────────────────────────────────────────────────────────────────────────────┐\n│ Item     │ Status    │ Detail                                                                                        │\n├──────────┼───────────┼───────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Gateway  │ reachable │ 6366ms                                                                                        │\n│ Telegram │ OK        │ ok (@eangyang_bot:default:2014ms, @ayang2026_bot:ayang:2253ms, @zhiyu2026_bot:zhiyu:2099ms)   │\n└──────────┴───────────┴───────────────────────────────────────────────────────────────────────────────────────────────┘\n\nFAQ: https://docs.openclaw.ai/faq\nTroubleshooting: https://docs.openclaw.ai/troubleshooting\n\nUpdate available (npm 2026.3.13). Run: openclaw update\n\nNext steps:\n  Need to share?      openclaw status --all\n  Need to debug live? openclaw logs --follow\n  Need to test channels? openclaw status --deep\n"
+  }
+}
