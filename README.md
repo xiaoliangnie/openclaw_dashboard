@@ -1,58 +1,110 @@
 # OpenClaw Dashboard
 
-一个面向 **个人 AI 控制台** 的本地 Dashboard。
+一个给自己用的 **OpenClaw 本地控制台**。
 
-这版重点不再是“手动刷新后看一眼”，而是：
+重点不是“做一套很全的后台”，而是把几件高频事情收进一个稳定入口里：
 
-- **后台常驻**：用 launchd/LaunchAgent 长驻运行
-- **局域网可访问**：直接从同一局域网里的电脑打开
-- **状态衔接统一**：页面统一使用“常驻后台 / 静态快照 / 后备数据”三层来源
-- **风险收敛**：局域网访问默认只开放只读面板，敏感 auth 操作仍只允许本机执行
+- 看当前 OpenClaw 是否正常
+- 看会话和角色现在谁在动
+- 看 `main` 的授权状态
+- 通过网页登录后执行控制操作
+- 在局域网里直接打开控制台
 
 ---
 
-## 访问方式
+## 当前定位
 
-### 本机访问
+这一版已经是：
 
-默认地址：
+- **常驻 backend**：用 LaunchAgent 常驻运行
+- **局域网可访问**：同一局域网设备可直接打开面板
+- **前后端一体**：`scripts/auth-bridge.mjs` 同时提供 API 和静态页面
+- **登录保护**：进入控制台前先登录，控制接口跟着登录态走
+
+它还是一个轻量控制台，不是通用运维平台。
+
+---
+
+## 控制台登录
+
+当前控制台支持网页登录账号密码。
+
+账号密码来源：
+
+1. 环境变量：
+   - `DASHBOARD_LOGIN_USERNAME`
+   - `DASHBOARD_LOGIN_PASSWORD`
+2. 或本机配置文件：
+   - `~/.openclaw/dashboard-config.json`
+   - 结构：
+
+```json
+{
+  "login": {
+    "username": "dashboard",
+    "password": "your-password"
+  }
+}
+```
+
+如果两者同时存在，环境变量优先。
+
+---
+
+## 访问地址
+
+### 本机
 
 ```text
 http://127.0.0.1:4318
 ```
 
-### 局域网访问
+### 局域网
 
-当 backend 监听 `0.0.0.0:4318` 后，局域网内其它设备可直接打开：
+当 backend 监听 `0.0.0.0:4318` 时，可从同一局域网访问：
 
 ```text
-http://<这台Mac的局域网IP>:4318
+http://<这台 Mac 的局域网 IP>:4318
 ```
 
-> 说明：
-> - 页面和 runtime 数据可以局域网访问
-> - `ocauth` 相关敏感操作默认 **只允许 dashboard 所在主机本机访问**
-> - 这样可以避免把 auth 切换能力裸露给整个局域网
+### 当前边界
+
+- 不登录：只能看到登录页和健康检查
+- 登录后：可以进入控制台并使用控制接口
+- 不再额外区分“本机可控 / 局域网只读”
+
+也就是说，现在的权限边界以**控制台登录账号密码**为准。
 
 ---
 
 ## 运行结构
 
-现在 `scripts/auth-bridge.mjs` 不只是 auth bridge，也是一层轻量 backend：
+`scripts/auth-bridge.mjs` 现在承担三件事：
 
-- 定时执行 OpenClaw 状态采集
-- 自动写入 `public/runtime-data.json`
-- 对前端暴露 `/api/runtime`
-- 继续对 Auth 面板暴露 `/api/auth/*`
-- 同时直接托管 `dist/` 里的前端静态页面
+1. 托管 `dist/` 前端静态页面
+2. 定时刷新 runtime 数据
+3. 提供控制台 API
 
-所以生产使用时，不再需要单独跑 `vite dev` 才能打开页面。
+配套的数据采集脚本是：
+
+```text
+scripts/collect-openclaw-status.mjs
+```
+
+它会调用：
+
+- `openclaw models status`
+- `openclaw status --deep`
+
+然后把结果整理成：
+
+```text
+public/runtime-data.json
+```
 
 ---
 
 ## 开发模式
-
-如果只是继续做前端开发：
 
 ```bash
 cd /Users/apple/.openclaw/workspace/openclaw-dashboard
@@ -60,13 +112,13 @@ npm install
 npm run dev
 ```
 
-另开一个终端跑 backend：
+另开一个终端：
 
 ```bash
 npm run backend
 ```
 
-开发模式下：
+开发模式地址：
 
 - 前端：`http://127.0.0.1:5173`
 - 后端：`http://127.0.0.1:4318`
@@ -75,144 +127,134 @@ npm run backend
 
 ## 生产 / 常驻使用
 
-### 1. 先构建前端
+先 build：
 
 ```bash
 cd /Users/apple/.openclaw/workspace/openclaw-dashboard
 npm run build
 ```
 
-### 2. 手动前台启动 backend（临时）
+临时前台启动：
 
 ```bash
 OCAUTH_BRIDGE_HOST=0.0.0.0 OCAUTH_BRIDGE_PORT=4318 npm run backend
 ```
 
-启动后可直接打开：
+项目附带 LaunchAgent 模板：
 
 ```text
-http://127.0.0.1:4318
+deploy/ai.openclaw.dashboard.plist
 ```
 
-或局域网：
-
-```text
-http://<局域网IP>:4318
-```
-
----
-
-## macOS 常驻版（LaunchAgent）
-
-项目里附带了 launchd 配置模板：
-
-```text
-openclaw-dashboard/deploy/ai.openclaw.dashboard.plist
-```
-
-默认配置：
-
-- Host: `0.0.0.0`
-- Port: `4318`
-- 自动拉取 OpenClaw 状态间隔：`30000ms`
-- RunAtLoad: `true`
-- KeepAlive: `true`
-
-日志输出位置：
+常驻日志：
 
 ```text
 ~/.openclaw/logs/dashboard-backend.out.log
 ~/.openclaw/logs/dashboard-backend.err.log
 ```
 
-如果已经安装到 `~/Library/LaunchAgents/ai.openclaw.dashboard.plist`，就可以用：
+查看 LaunchAgent：
 
 ```bash
 launchctl print gui/$(id -u)/ai.openclaw.dashboard
 ```
 
-查看状态。
-
 ---
 
 ## 前端取数顺序
 
-前端现在按这套顺序取数据：
+前端按这个顺序拿数据：
 
-1. 优先读当前同源 backend 的 `/api/runtime`
-2. backend 不通时退回 `public/runtime-data.json`（静态快照）
-3. 两者都拿不到时才退回 mock（后备数据）
+1. `/api/runtime`
+2. `public/runtime-data.json`
+3. mock fallback
 
-并且前端默认每 **20 秒** 自动刷新一次。
+默认每 **20 秒** 自动刷新一次。
 
-刷新失败时：
+如果后台刷新失败：
 
 - 保留上一份有效数据
-- 不会一失败就整页掉回 mock
-- 页面会显示“后台刷新失败，暂时保留上一份数据”
-
----
-
-## 后端接口
-
-### Runtime
-
-- `GET /api/runtime`
-- `POST /api/runtime/refresh`（仅本机）
-- `GET /api/health`
-
-### Auth
-
-- `GET /api/auth/status`（仅本机）
-- `POST /api/auth/refresh`（仅本机）
-- `POST /api/auth/save`（仅本机）
-- `POST /api/auth/switch`（仅本机）
+- 不会立刻整页掉回 mock
+- 页面会提示当前显示的是旧数据
 
 ---
 
 ## 当前已接入的真实信息
 
-来自：
-
-```bash
-openclaw models status
-openclaw status --deep
-```
-
-当前已接入：
+来自 OpenClaw CLI 的真实信息包括：
 
 - 默认模型
-- auth / token 是否正常
+- auth / token 状态
 - token 剩余有效期
 - Gateway reachable / service 状态
 - Telegram 总体状态
 - active sessions 数量
-- Sessions 表中的真实 session 列表
+- sessions 表里的真实会话列表
 - 每个 session 的 key / kind / age / model / tokens
 - update available 文案
-- Security audit summary
-- 阿羊晨间计划（来自 `memory/ayang-daily-plan.json`）
+- security audit summary
+- 阿羊今日计划
+
+### 阿羊计划来源
+
+阿羊计划当前读取的是：
+
+```text
+/Users/apple/.openclaw/workspace-ayang/memory/ayang-daily-plan.json
+```
+
+不是 main workspace 下那份旧路径。
 
 ---
 
-## 当前边界
+## 当前真实状态
 
 ### 已经可用
 
 - Dashboard 主界面浏览
+- 控制台网页登录
 - 常驻 backend 自动刷新 runtime 数据
-- 局域网读取面板
 - Sessions 真实数据显示
 - Agents 真实聚合视图
-- System 页 OCAUTH 状态读取（本机）
-- Save current / Switch saved label / Refresh status（本机）
+- System 页读取 `main` 的 auth 状态
+- 保存授权 / 切换授权 / 手动刷新
+- 登录后直接重启 gateway
 
 ### 仍然保守处理
 
-- 最近活动时间线仍然是 mock
+- 最近动态时间线当前仍主要是 mock 展示
 - Skill Library 仍是展示型分组
 - OCAUTH 面板当前只优先支持 `main`
-- 登录（`login <label>`）还没放进按钮，避免把 OAuth 浏览器流程直接塞进控制台
+- OAuth 登录流程还没做成面板按钮
+- 预留接口已经留出，但暂时不继续扩写
+
+---
+
+## 后端接口分层
+
+### 公开
+
+- `GET /api/health`
+- `GET /api/session/status`
+- `POST /api/session/login`
+- `POST /api/session/logout`
+
+### 登录后可用
+
+- `GET /api/runtime`
+- `POST /api/runtime/refresh`
+- `GET /api/auth/status`
+- `POST /api/auth/refresh`
+- `POST /api/auth/save`
+- `POST /api/auth/switch`
+- `POST /api/gateway/restart`
+- `GET /api/metrics`
+- `GET /api/logs`
+- `GET /api/agents/:id`
+- `POST /api/agents/:id/task`
+- `GET /api/sessions/:id`
+- `GET /api/config`
+- `POST /api/config`
 
 ---
 
@@ -237,6 +279,7 @@ openclaw-dashboard/
     ├── components/
     │   ├── AuthPanel.jsx
     │   ├── Layout.jsx
+    │   ├── PixelAvatar.jsx
     │   └── SectionHeader.jsx
     ├── data/
     │   ├── mockData.js

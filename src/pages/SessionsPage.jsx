@@ -1,26 +1,36 @@
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { SectionHeader } from '../components/SectionHeader';
 import { useDashboardRuntime } from '../hooks/useDashboardRuntime';
 
 const kindLabelMap = {
   direct: '直接会话',
-  slash: '斜杠命令',
+  slash: '命令入口',
   subagent: '子任务',
+  cron: '定时任务',
+  telegram: 'Telegram',
+  main: '主控制台',
 };
 
 const filterOptions = [
   { key: 'all', label: '全部' },
-  { key: 'running', label: '进行中' },
-  { key: 'completed', label: '已完成' },
-  { key: 'queued', label: '等待中' },
+  { key: 'active', label: '活跃中' },
+  { key: 'idle', label: '近期无新动作' },
+  { key: 'queued', label: '已沉淀' },
 ];
 
 export function SessionsPage() {
   const { sessions, runtime, source, refreshing } = useDashboardRuntime();
-  const activeCount = runtime?.status?.sessions?.active ?? sessions.length;
+  const activeCount = runtime?.status?.sessions?.active ?? sessions.filter((s) => s.state === 'active').length;
 
   const [search, setSearch] = useState('');
   const [stateFilter, setStateFilter] = useState('all');
+
+  const counts = useMemo(() => ({
+    all: sessions.length,
+    active: sessions.filter((s) => s.state === 'active').length,
+    idle: sessions.filter((s) => s.state === 'idle').length,
+    queued: sessions.filter((s) => s.state === 'queued').length,
+  }), [sessions]);
 
   const filtered = useMemo(() => {
     return sessions.filter((s) => {
@@ -31,7 +41,9 @@ export function SessionsPage() {
           (s.title || '').toLowerCase().includes(q) ||
           (s.summary || '').toLowerCase().includes(q) ||
           (s.id || '').toLowerCase().includes(q) ||
-          (s.agent || '').toLowerCase().includes(q)
+          (s.key || '').toLowerCase().includes(q) ||
+          (s.agentLabel || '').toLowerCase().includes(q) ||
+          (s.model || '').toLowerCase().includes(q)
         );
       }
       return true;
@@ -42,16 +54,20 @@ export function SessionsPage() {
     <div className="page-stack">
       <SectionHeader
         eyebrow="会话"
-        title="最近会话"
-        description="上下文、模型与活跃状态"
-        action={<span className={`pill ${source.mode === 'backend' ? 'active' : source.mode === 'snapshot' ? 'warn' : 'queued'}`}>{refreshing ? '后台刷新中' : source.label}</span>}
+        title="会话整理"
+        description="先把正在推进的、可续接的、已经沉淀的上下文分清。"
+        action={
+          <span className={`pill ${source.mode === 'backend' ? 'active' : source.mode === 'snapshot' ? 'warn' : 'queued'}`}>
+            {refreshing ? '后台刷新中' : source.label}
+          </span>
+        }
       />
 
       <div className="sessions-filter-bar panel subtle-panel">
         <input
           className="sessions-search-input"
           type="text"
-          placeholder="搜索会话…"
+          placeholder="搜索角色、会话、模型或 key…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -62,7 +78,7 @@ export function SessionsPage() {
               className={`filter-pill${stateFilter === opt.key ? ' filter-pill-active' : ''}`}
               onClick={() => setStateFilter(opt.key)}
             >
-              {opt.label}
+              {opt.label} · {counts[opt.key] ?? 0}
             </button>
           ))}
         </div>
@@ -72,14 +88,17 @@ export function SessionsPage() {
         <div>
           <div className="metric-label">数据来源</div>
           <strong>{source.label}</strong>
+          <div className="muted compact">{source.detail}</div>
         </div>
         <div>
           <div className="metric-label">最近刷新</div>
           <strong>{runtime?.generatedAt ? new Date(runtime.generatedAt).toLocaleString('zh-CN') : '未知'}</strong>
+          <div className="muted compact">用于判断当前页是不是最新状态</div>
         </div>
         <div>
           <div className="metric-label">活跃会话</div>
           <strong>{activeCount}</strong>
+          <div className="muted compact">优先关注这部分</div>
         </div>
       </div>
 
@@ -93,12 +112,13 @@ export function SessionsPage() {
                   {session.kind ? <span className="chip">{kindLabelMap[session.kind] || session.kind}</span> : null}
                 </div>
                 <p className="muted compact session-meta-line">
-                  <span>{session.key || session.id}</span>
+                  {session.agentLabel ? <span>{session.agentLabel}</span> : null}
                   {session.model ? <span>{session.model}</span> : null}
                   {session.age ? <span>{session.age}</span> : null}
+                  {session.key ? <span>{session.key}</span> : null}
                 </p>
               </div>
-              <span className={`pill ${session.state}`}>{session.stateLabel || session.tokens || session.state}</span>
+              <span className={`pill ${session.state}`}>{session.stateLabel || session.state}</span>
             </div>
 
             <p className="session-summary">{session.summary}</p>

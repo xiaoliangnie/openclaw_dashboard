@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react';
-import { agents as mockAgents, ayangPlan as mockAyangPlan, heroSnapshot, healthChecks, overviewStats, sessions as mockSessions } from '../data/mockData';
+import {
+  agents as mockAgents,
+  ayangPlan as mockAyangPlan,
+  heroSnapshot,
+  healthChecks,
+  overviewStats,
+  recentActivity as mockRecentActivity,
+  sessions as mockSessions,
+} from '../data/mockData';
 import { getDashboardData } from '../data/runtimeData';
 
 const fallbackData = {
@@ -10,6 +18,7 @@ const fallbackData = {
   sessions: mockSessions,
   agents: mockAgents,
   ayangPlan: mockAyangPlan,
+  recentActivity: mockRecentActivity,
   source: {
     mode: 'mock',
     label: '后备数据',
@@ -19,7 +28,7 @@ const fallbackData = {
   isFallback: true,
 };
 
-const POLL_MS = 20000;
+const POLL_MS = 10000;
 
 export function useDashboardRuntime() {
   const [state, setState] = useState({
@@ -81,12 +90,26 @@ export function useDashboardRuntime() {
       }
     }
 
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') {
+        load({ initial: false });
+      }
+    }
+
+    function handleFocus() {
+      load({ initial: false });
+    }
+
     load({ initial: true });
     const timer = setInterval(() => load({ initial: false }), POLL_MS);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
 
     return () => {
       cancelled = true;
       clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

@@ -7,7 +7,7 @@ const links = [
   { to: '/system', label: '系统', hint: '健康 · 授权', icon: '⚙' },
 ];
 
-export function Layout({ children }) {
+export function Layout({ children, username, onLogout }) {
   return (
     <div className="shell">
       <aside className="sidebar panel">
@@ -21,15 +21,15 @@ export function Layout({ children }) {
           </div>
 
           <div className="sidebar-overview subtle-panel">
-            <div className="eyebrow">运行数据</div>
-            <div className="sidebar-overview-title">本地实时状态</div>
+            <div className="eyebrow">访问状态</div>
+            <div className="sidebar-overview-title">已登录控制台</div>
             <p className="muted compact">
-              优先本地 runtime，不可用时自动回退快照。
+              当前账号：{username || '未知用户'}
             </p>
           </div>
 
           <nav className="nav">
-            {links.map((link, index) => (
+            {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
@@ -48,6 +48,9 @@ export function Layout({ children }) {
           </nav>
         </div>
 
+        <div className="sidebar-footer">
+          <button className="ghost-button sidebar-logout" onClick={onLogout}>退出登录</button>
+        </div>
       </aside>
 
       <main className="content">{children}</main>

@@ -112,6 +112,17 @@ export const agents = [
     lastAction: '9 分钟前整理了一批研究笔记',
     accent: 'emerald',
   },
+  {
+    id: 'codery',
+    name: 'Codery',
+    role: '项目编程 / 工程交付',
+    mood: '等待任务',
+    status: 'idle',
+    description: '专门负责做项目、写代码、修 bug、重构和工程交付。',
+    sessions: 0,
+    lastAction: '等待第一条编程任务接入',
+    accent: 'blue',
+  },
 ];
 
 export const sessions = [

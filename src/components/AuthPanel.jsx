@@ -38,7 +38,7 @@ export function AuthPanel() {
           <div className="eyebrow">授权</div>
           <h3>main 授权面板</h3>
           <p className="muted compact">
-            通过本地 bridge 管理授权，变更限于本机执行。
+            登录控制台后即可查看和切换 main 授权。
           </p>
         </div>
         <div className="auth-head-actions">

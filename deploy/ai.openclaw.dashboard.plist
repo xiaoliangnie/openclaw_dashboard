@@ -25,7 +25,7 @@
       <key>OCAUTH_BRIDGE_PORT</key>
       <string>4318</string>
       <key>DASHBOARD_RUNTIME_REFRESH_MS</key>
-      <string>30000</string>
+      <string>15000</string>
     </dict>
 
     <key>RunAtLoad</key>

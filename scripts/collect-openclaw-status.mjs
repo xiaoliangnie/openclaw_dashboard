@@ -11,13 +11,16 @@ const ayangWorkspaceRoot = process.env.AYANG_WORKSPACE_ROOT || '/Users/apple/.op
 const outputPath = path.join(projectRoot, 'public', 'runtime-data.json');
 const ayangPlanPath = path.join(ayangWorkspaceRoot, 'memory', 'ayang-daily-plan.json');
 const OPENCLAW_BIN = process.env.OPENCLAW_BIN || '/Users/apple/.npm-global/bin/openclaw';
+const MODELS_STATUS_TIMEOUT_MS = Number(process.env.DASHBOARD_MODELS_TIMEOUT_MS || 4000);
+const STATUS_DEEP_TIMEOUT_MS = Number(process.env.DASHBOARD_STATUS_TIMEOUT_MS || 12000);
 
-function runOpenClaw(args) {
+function runOpenClaw(args, timeoutMs) {
   try {
     return execFileSync(OPENCLAW_BIN, args, {
       cwd: workspaceRoot,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      timeout: timeoutMs,
       env: {
         ...process.env,
         NO_COLOR: '1',
@@ -27,6 +30,18 @@ function runOpenClaw(args) {
     const stdout = error.stdout?.toString?.() ?? '';
     const stderr = error.stderr?.toString?.() ?? '';
     throw new Error(`${OPENCLAW_BIN} ${args.join(' ')} failed\n${stdout}${stderr}`.trim());
+  }
+}
+
+function readPreviousRuntime() {
+  if (!existsSync(outputPath)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(readFileSync(outputPath, 'utf8'));
+  } catch {
+    return null;
   }
 }
 
@@ -95,6 +110,7 @@ function agentLabel(value) {
     main: '二弟',
     ayang: '阿羊',
     zhiyu: '知雨',
+    codery: 'Codery',
   }[value] || value || 'Agent';
 }
 
@@ -306,6 +322,12 @@ function inferAgentCard(agentId, sessions) {
       description: '偏论文、文献、研究问题整理和方法路线。',
       accent: 'emerald',
     },
+    codery: {
+      name: 'Codery',
+      role: '项目编程 / 工程交付',
+      description: '偏项目开发、写代码、修 bug、重构和工程交付。',
+      accent: 'blue',
+    },
   }[agentId] || {
     name: agentLabel(agentId),
     role: 'Agent',
@@ -381,14 +403,32 @@ function loadAyangPlan() {
   }
 }
 
-export function buildRuntimeData() {
-  const modelText = runOpenClaw(['models', 'status']);
-  const statusText = runOpenClaw(['status', '--deep']);
+function buildRuntimeData() {
+  const previous = readPreviousRuntime();
+
+  let modelText = previous?.raw?.modelsStatus || null;
+  let statusText = previous?.raw?.statusDeep || null;
+
+  try {
+    modelText = runOpenClaw(['models', 'status'], MODELS_STATUS_TIMEOUT_MS);
+  } catch (error) {
+    if (!modelText) {
+      throw error;
+    }
+  }
+
+  try {
+    statusText = runOpenClaw(['status', '--deep'], STATUS_DEEP_TIMEOUT_MS);
+  } catch (error) {
+    if (!statusText) {
+      throw error;
+    }
+  }
 
   const models = parseModelStatus(modelText);
   const status = parseStatusDeep(statusText);
   const runtimeSessions = status.sessions.items;
-  const runtimeAgents = ['main', 'ayang', 'zhiyu'].map((agentId) => inferAgentCard(agentId, runtimeSessions));
+  const runtimeAgents = ['main', 'ayang', 'zhiyu', 'codery'].map((agentId) => inferAgentCard(agentId, runtimeSessions));
   const ayangPlan = loadAyangPlan();
 
   return {
@@ -408,7 +448,7 @@ export function buildRuntimeData() {
   };
 }
 
-export function writeRuntimeData(data = buildRuntimeData()) {
+function writeRuntimeData(data = buildRuntimeData()) {
   mkdirSync(path.dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
   return outputPath;

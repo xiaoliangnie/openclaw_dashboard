@@ -1,11 +1,13 @@
 import http from 'node:http';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { ProxyAgent } from 'undici';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +19,8 @@ const collectorScriptPath = path.join(projectRoot, 'scripts', 'collect-openclaw-
 const execFileAsync = promisify(execFile);
 const PORT = Number(process.env.OCAUTH_BRIDGE_PORT || 4318);
 const HOST = process.env.OCAUTH_BRIDGE_HOST || '127.0.0.1';
-const RUNTIME_REFRESH_MS = Number(process.env.DASHBOARD_RUNTIME_REFRESH_MS || 30000);
+const RUNTIME_REFRESH_MS = Number(process.env.DASHBOARD_RUNTIME_REFRESH_MS || 15000);
+const RUNTIME_STALE_MS = Number(process.env.DASHBOARD_RUNTIME_STALE_MS || Math.max(RUNTIME_REFRESH_MS + 5000, 20000));
 const OPENCLAW_BIN = process.env.OPENCLAW_BIN || '/Users/apple/.npm-global/bin/openclaw';
 const agentId = 'main';
 const openclawDir = path.join(os.homedir(), '.openclaw');
@@ -25,6 +28,7 @@ const backupDir = path.join(os.homedir(), '.openclaw-auth-profiles');
 const authScript = '/Users/apple/.openclaw/workspace/skills/openclaw-auth-switch/scripts/switch-openclaw-auth.sh';
 const authFile = path.join(openclawDir, 'agents', agentId, 'agent', 'auth-profiles.json');
 const currentLabelPath = path.join(backupDir, `.current_${agentId}`);
+const dashboardConfigPath = path.join(openclawDir, 'dashboard-config.json');
 
 const runtimeState = {
   data: null,
@@ -81,6 +85,251 @@ function readRuntimeSnapshot() {
   return readJsonMaybe(runtimeDataPath);
 }
 
+function readDashboardConfig() {
+  return readJsonMaybe(dashboardConfigPath) || {};
+}
+
+function readOpenClawConfig() {
+  return readJsonMaybe(path.join(openclawDir, 'openclaw.json')) || {};
+}
+
+function listTelegramAccounts() {
+  const accounts = readOpenClawConfig()?.channels?.telegram?.accounts || {};
+  return Object.entries(accounts)
+    .filter(([, value]) => value && value.enabled !== false && value.botToken)
+    .map(([id, value]) => ({
+      id,
+      name: value.name || id,
+    }));
+}
+
+function getTelegramBotToken(accountId = 'default') {
+  const accounts = readOpenClawConfig()?.channels?.telegram?.accounts || {};
+  const account = accounts?.[accountId];
+  return account?.enabled === false ? null : account?.botToken || null;
+}
+
+function getTelegramProxyUrl() {
+  const config = readOpenClawConfig();
+  return config?.channels?.telegram?.proxy || process.env.HTTPS_PROXY || process.env.HTTP_PROXY || null;
+}
+
+let telegramProxyAgent = null;
+function getTelegramFetchOptions() {
+  const proxyUrl = getTelegramProxyUrl();
+  if (!proxyUrl) return {};
+  if (!telegramProxyAgent) {
+    telegramProxyAgent = new ProxyAgent(proxyUrl);
+  }
+  return { dispatcher: telegramProxyAgent };
+}
+
+function resolveTelegramSendPath(inputPath) {
+  const raw = String(inputPath || '').trim();
+  if (!raw) return null;
+  if (path.isAbsolute(raw)) return raw;
+  return path.resolve(projectRoot, raw);
+}
+
+async function sendTelegramFile({ accountId = 'default', chatId, filePath, caption = '', uploadedFile = null }) {
+  const token = getTelegramBotToken(accountId);
+  if (!token) {
+    throw new Error(`Telegram 账号 ${accountId} 不存在，或没有可用 bot token。`);
+  }
+
+  let body;
+  let fileName;
+  let mimeType;
+
+  if (uploadedFile) {
+    const contentBase64 = String(uploadedFile.contentBase64 || '');
+    if (!contentBase64) {
+      throw new Error('上传文件内容为空。');
+    }
+    body = Buffer.from(contentBase64, 'base64');
+    fileName = String(uploadedFile.fileName || 'upload.bin').trim() || 'upload.bin';
+    mimeType = String(uploadedFile.mimeType || mimeTypeFor(fileName));
+  } else {
+    const resolvedPath = resolveTelegramSendPath(filePath);
+    if (!resolvedPath || !existsSync(resolvedPath)) {
+      throw new Error('文件路径不存在，无法发送。');
+    }
+    body = await readFile(resolvedPath);
+    fileName = path.basename(resolvedPath);
+    mimeType = mimeTypeFor(resolvedPath);
+  }
+
+  const isImage = /^image\//i.test(mimeType);
+  const method = isImage ? 'sendPhoto' : 'sendDocument';
+  const field = isImage ? 'photo' : 'document';
+
+  const form = new FormData();
+  form.set('chat_id', String(chatId));
+  if (caption) {
+    form.set('caption', caption);
+  }
+  form.set(field, new Blob([body], { type: mimeType }), fileName);
+
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: 'POST',
+    body: form,
+    ...getTelegramFetchOptions(),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || !payload?.ok) {
+    throw new Error(payload?.description || `Telegram API 请求失败（${response.status}）`);
+  }
+
+  return {
+    accountId,
+    method,
+    fileName,
+    mimeType,
+    chatId: String(chatId),
+    messageId: payload?.result?.message_id || null,
+    sentAt: new Date().toISOString(),
+  };
+}
+
+function getDashboardLoginConfig() {
+  const config = readDashboardConfig();
+  const login = config?.login && typeof config.login === 'object' ? config.login : {};
+  const username = process.env.DASHBOARD_LOGIN_USERNAME || login.username || null;
+  const password = process.env.DASHBOARD_LOGIN_PASSWORD || login.password || null;
+
+  if (!username || !password) {
+    return null;
+  }
+
+  return {
+    username: String(username),
+    password: String(password),
+  };
+}
+
+function getDashboardTelegramConfig() {
+  const config = readDashboardConfig();
+  const telegram = config?.telegram && typeof config.telegram === 'object' ? config.telegram : {};
+  const defaultChatId = process.env.DASHBOARD_DEFAULT_TELEGRAM_CHAT_ID || telegram.defaultChatId || null;
+
+  return {
+    defaultChatId: defaultChatId ? String(defaultChatId).trim() : null,
+  };
+}
+
+const SESSION_COOKIE_NAME = 'openclaw_dashboard_session';
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24;
+
+function passwordMatches(expected, received) {
+  if (!expected || !received) return false;
+  const left = Buffer.from(String(expected));
+  const right = Buffer.from(String(received));
+  if (left.length !== right.length) return false;
+  return timingSafeEqual(left, right);
+}
+
+function parseCookies(req) {
+  const header = req.headers.cookie || '';
+  const result = {};
+
+  for (const part of header.split(';')) {
+    const [rawKey, ...rawValue] = part.trim().split('=');
+    if (!rawKey) continue;
+    result[rawKey] = decodeURIComponent(rawValue.join('=') || '');
+  }
+
+  return result;
+}
+
+function getSessionSecret() {
+  const config = readDashboardConfig();
+  const fromEnv = process.env.DASHBOARD_SESSION_SECRET;
+  const fromConfig = config?.sessionSecret;
+  if (typeof fromEnv === 'string' && fromEnv.trim()) return String(fromEnv);
+  if (typeof fromConfig === 'string' && fromConfig.trim()) return String(fromConfig);
+
+  const login = getDashboardLoginConfig();
+  if (!login) return null;
+  return `openclaw-dashboard:${login.username}:${login.password}`;
+}
+
+function signSessionPayload(payload) {
+  const secret = getSessionSecret();
+  if (!secret) return null;
+  return createHmac('sha256', secret).update(payload).digest('base64url');
+}
+
+function createSession(username) {
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  const payload = Buffer.from(JSON.stringify({ username, expiresAt }), 'utf8').toString('base64url');
+  const signature = signSessionPayload(payload);
+  if (!signature) return null;
+  return `${payload}.${signature}`;
+}
+
+function readSession(req) {
+  const token = parseCookies(req)[SESSION_COOKIE_NAME];
+  if (!token) return null;
+
+  const [payload, signature] = String(token).split('.');
+  if (!payload || !signature) return null;
+
+  const expectedSignature = signSessionPayload(payload);
+  if (!expectedSignature) return null;
+  const left = Buffer.from(expectedSignature);
+  const right = Buffer.from(signature);
+  if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
+
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!parsed?.username || !parsed?.expiresAt) return null;
+    if (Number(parsed.expiresAt) <= Date.now()) return null;
+    return {
+      token,
+      username: String(parsed.username),
+      expiresAt: Number(parsed.expiresAt),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function setSessionCookie(res, token) {
+  const cookie = `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`;
+  res.setHeader('Set-Cookie', cookie);
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+}
+
+function requireSession(req, res) {
+  const login = getDashboardLoginConfig();
+  if (!login) {
+    json(res, 503, {
+      ok: false,
+      error: '控制台登录尚未配置。',
+      loginRequired: true,
+      configured: false,
+    });
+    return null;
+  }
+
+  const session = readSession(req);
+  if (session) {
+    return session;
+  }
+
+  json(res, 401, {
+    ok: false,
+    error: '请先登录控制台。',
+    loginRequired: true,
+    configured: true,
+  });
+  return null;
+}
+
 function readCurrentLabel() {
   if (!existsSync(currentLabelPath)) {
     return '未知';
@@ -95,18 +344,6 @@ function normalizeRemoteAddress(req) {
 function isLocalRequest(req) {
   const address = normalizeRemoteAddress(req);
   return address === '127.0.0.1' || address === '::1' || address === 'localhost';
-}
-
-function requireLocal(req, res) {
-  if (isLocalRequest(req)) {
-    return true;
-  }
-
-  json(res, 403, {
-    ok: false,
-    error: '出于安全考虑，授权操作和手动刷新只允许在这台 Mac 本机访问。局域网访问默认是只读面板。',
-  });
-  return false;
 }
 
 function parseAuthProfileSummary() {
@@ -246,7 +483,8 @@ async function getStatus() {
       host: HOST,
       updatedAt: new Date().toISOString(),
       runtimeRefreshMs: RUNTIME_REFRESH_MS,
-      authControlsLocalOnly: true,
+      authControlsLocalOnly: false,
+      loginEnabled: Boolean(getDashboardLoginConfig()),
     },
   };
 }
@@ -311,6 +549,13 @@ async function refreshRuntimeCache() {
   }
 }
 
+function getRuntimeAgeMs() {
+  const generatedAt = runtimeState.data?.generatedAt;
+  if (!generatedAt) return null;
+  const age = Date.now() - new Date(generatedAt).getTime();
+  return Number.isFinite(age) ? Math.max(0, age) : null;
+}
+
 function getRuntimePayload() {
   return {
     data: runtimeState.data,
@@ -319,11 +564,14 @@ function getRuntimePayload() {
       host: HOST,
       port: PORT,
       refreshMs: RUNTIME_REFRESH_MS,
+      staleMs: RUNTIME_STALE_MS,
+      dataAgeMs: getRuntimeAgeMs(),
       refreshing: runtimeState.refreshing,
       lastAttemptAt: runtimeState.lastAttemptAt,
       lastSuccessAt: runtimeState.lastSuccessAt,
       error: runtimeState.error,
-      authControlsLocalOnly: true,
+      authControlsLocalOnly: false,
+      loginEnabled: Boolean(getDashboardLoginConfig()),
     },
   };
 }
@@ -397,13 +645,78 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host || `${HOST}:${PORT}`}`);
 
   try {
+    if (req.method === 'GET' && url.pathname === '/api/session/status') {
+      const login = getDashboardLoginConfig();
+      const session = readSession(req);
+      json(res, 200, {
+        ok: true,
+        data: {
+          configured: Boolean(login),
+          authenticated: Boolean(session),
+          username: session?.username || null,
+        },
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/session/login') {
+      const login = getDashboardLoginConfig();
+      if (!login) {
+        json(res, 503, { ok: false, error: '控制台登录尚未配置。', configured: false });
+        return;
+      }
+
+      const body = await readBody(req);
+      const username = String(body?.username || '').trim();
+      const password = String(body?.password || '');
+
+      if (!passwordMatches(login.username, username) || !passwordMatches(login.password, password)) {
+        json(res, 401, { ok: false, error: '用户名或密码不正确。', configured: true });
+        return;
+      }
+
+      const token = createSession(login.username);
+      setSessionCookie(res, token);
+      json(res, 200, {
+        ok: true,
+        data: {
+          configured: true,
+          authenticated: true,
+          username: login.username,
+        },
+        message: '登录成功。',
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/session/logout') {
+      clearSessionCookie(res);
+      json(res, 200, {
+        ok: true,
+        data: {
+          configured: Boolean(getDashboardLoginConfig()),
+          authenticated: false,
+          username: null,
+        },
+        message: '已退出登录。',
+      });
+      return;
+    }
+
     if (req.method === 'GET' && url.pathname === '/api/runtime') {
+      if (!requireSession(req, res)) return;
+      const ageMs = getRuntimeAgeMs();
+      if (!runtimeState.refreshing && (!runtimeState.data || (ageMs !== null && ageMs > RUNTIME_STALE_MS))) {
+        refreshRuntimeCache().catch((error) => {
+          console.error(`[dashboard-backend] on-demand runtime refresh failed: ${error.message}`);
+        });
+      }
       json(res, 200, { ok: true, ...getRuntimePayload() });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/runtime/refresh') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       const data = await refreshRuntimeCache();
       json(res, 200, {
         ok: true,
@@ -415,19 +728,19 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && url.pathname === '/api/auth/status') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       json(res, 200, { ok: true, data: await getStatus() });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/auth/refresh') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       json(res, 200, { ok: true, data: await getStatus(), message: '授权状态已刷新。' });
       return;
     }
 
     if (req.method === 'POST' && url.pathname === '/api/auth/save') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       const body = await readBody(req);
       const label = String(body?.label || '').trim();
       if (!safeLabel(label)) {
@@ -441,7 +754,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/auth/switch') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       const body = await readBody(req);
       const label = String(body?.label || '').trim();
       if (!safeLabel(label)) {
@@ -454,6 +767,66 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === 'GET' && url.pathname === '/api/telegram/accounts') {
+      if (!requireSession(req, res)) return;
+      json(res, 200, {
+        ok: true,
+        data: {
+          accounts: listTelegramAccounts(),
+        },
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/telegram/send-file') {
+      if (!requireSession(req, res)) return;
+      const body = await readBody(req);
+      const accountId = String(body?.accountId || 'default').trim() || 'default';
+      const configTelegram = getDashboardTelegramConfig();
+      const chatId = String(body?.chatId || configTelegram.defaultChatId || '').trim();
+      const filePath = String(body?.filePath || '').trim();
+      const caption = String(body?.caption || '').trim();
+      const uploadedFile = body?.uploadedFile && typeof body.uploadedFile === 'object' ? body.uploadedFile : null;
+
+      if (!chatId) {
+        json(res, 400, { ok: false, error: '还没有配置默认 Telegram chatId。' });
+        return;
+      }
+
+      if (!filePath && !uploadedFile) {
+        json(res, 400, { ok: false, error: '请选择文件，或提供 filePath。' });
+        return;
+      }
+
+      const result = await sendTelegramFile({ accountId, chatId, filePath, caption, uploadedFile });
+      json(res, 200, {
+        ok: true,
+        data: result,
+        message: `已通过 ${accountId} 发送${result.method === 'sendPhoto' ? '图片' : '文件'}：${result.fileName}`,
+      });
+      return;
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/gateway/restart') {
+      if (!requireSession(req, res)) return;
+
+      const child = spawn(OPENCLAW_BIN, ['gateway', 'restart'], {
+        detached: true,
+        stdio: 'ignore',
+        env: { ...process.env, NO_COLOR: '1' },
+      });
+      child.unref();
+
+      json(res, 200, {
+        ok: true,
+        data: {
+          restartedAt: new Date().toISOString(),
+        },
+        message: '已发起 OpenClaw gateway 重启。',
+      });
+      return;
+    }
+
     if (req.method === 'GET' && url.pathname === '/api/health') {
       json(res, 200, {
         ok: true,
@@ -462,12 +835,14 @@ const server = http.createServer(async (req, res) => {
         port: PORT,
         runtimeReady: Boolean(runtimeState.data),
         lastSuccessAt: runtimeState.lastSuccessAt,
+        loginEnabled: Boolean(getDashboardLoginConfig()),
       });
       return;
     }
 
     // ── GET /api/metrics — system metrics ──
     if (req.method === 'GET' && url.pathname === '/api/metrics') {
+      if (!requireSession(req, res)) return;
       const uptime = process.uptime();
       const days = Math.floor(uptime / 86400);
       const hours = Math.floor((uptime % 86400) / 3600);
@@ -506,6 +881,7 @@ const server = http.createServer(async (req, res) => {
 
     // ── GET /api/logs — recent log lines ──
     if (req.method === 'GET' && url.pathname === '/api/logs') {
+      if (!requireSession(req, res)) return;
       const limit = Math.min(Math.max(Number(url.searchParams.get('limit')) || 50, 1), 500);
       const logPath = path.join(os.homedir(), '.openclaw', 'logs', 'dashboard.log');
       let lines = [];
@@ -523,7 +899,7 @@ const server = http.createServer(async (req, res) => {
     {
       const taskMatch = req.method === 'POST' && url.pathname.match(/^\/api\/agents\/([^/]+)\/task$/);
       if (taskMatch) {
-        if (!requireLocal(req, res)) return;
+        if (!requireSession(req, res)) return;
         const id = taskMatch[1];
         const body = await readBody(req);
         json(res, 200, {
@@ -544,6 +920,7 @@ const server = http.createServer(async (req, res) => {
     {
       const agentMatch = req.method === 'GET' && url.pathname.match(/^\/api\/agents\/([^/]+)$/);
       if (agentMatch) {
+        if (!requireSession(req, res)) return;
         const id = agentMatch[1];
         const agents = runtimeState.data?.runtime?.agents || runtimeState.data?.agents || [];
         const agent = Array.isArray(agents)
@@ -562,6 +939,7 @@ const server = http.createServer(async (req, res) => {
     {
       const sessMatch = req.method === 'GET' && url.pathname.match(/^\/api\/sessions\/([^/]+)$/);
       if (sessMatch) {
+        if (!requireSession(req, res)) return;
         const id = sessMatch[1];
         const sessions = runtimeState.data?.runtime?.sessions || runtimeState.data?.sessions || [];
         const session = Array.isArray(sessions)
@@ -578,6 +956,7 @@ const server = http.createServer(async (req, res) => {
 
     // ── GET /api/config — read dashboard config ──
     if (req.method === 'GET' && url.pathname === '/api/config') {
+      if (!requireSession(req, res)) return;
       const configPath = path.join(os.homedir(), '.openclaw', 'dashboard-config.json');
       const config = readJsonMaybe(configPath) || {};
       json(res, 200, { ok: true, data: config, path: configPath });
@@ -586,7 +965,7 @@ const server = http.createServer(async (req, res) => {
 
     // ── POST /api/config — merge update config ──
     if (req.method === 'POST' && url.pathname === '/api/config') {
-      if (!requireLocal(req, res)) return;
+      if (!requireSession(req, res)) return;
       const configPath = path.join(os.homedir(), '.openclaw', 'dashboard-config.json');
       const existing = readJsonMaybe(configPath) || {};
       const body = await readBody(req);
@@ -602,6 +981,12 @@ const server = http.createServer(async (req, res) => {
       } catch (error) {
         json(res, 500, { ok: false, error: error.message || '写入配置失败' });
       }
+      return;
+    }
+
+    if (req.method === 'GET' && url.pathname === '/runtime-data.json') {
+      if (!requireSession(req, res)) return;
+      await serveStatic(req, res, url);
       return;
     }
 
